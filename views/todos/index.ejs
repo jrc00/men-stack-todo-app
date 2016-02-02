@@ -10,16 +10,19 @@
 
   <main>
     <div>
-      <h3>ToDos:</h3>
-      <% todos.forEach(function(todo) { %>
-        <h4>
+<!--       <h3>ToDos:</h3>
+ -->      <% todos.forEach(function(todo) { %>
+        <h5>
           <form method="POST" action="/todos/<%= todo._id %>?_method=DELETE">
             <a href="/todos/<%= todo._id %>">
-              <%= todo.title + ' - ' + todo.completed %>
+              <input  type="checkbox"
+                      name="completed"
+                      <%= todo.completed ? 'checked' : '' %> >
+              <%= todo.title %>
             </a>
             <button type="submit" class="btn btn-xs btn-danger">Delete</button>
           </form>
-        </h4>
+        </h5>
       <% }) %>
     </div>
     <a href="/todos/new" class="btn btn-primary">New</a>
