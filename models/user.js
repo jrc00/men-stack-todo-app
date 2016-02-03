@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
 var Todo = require('./todo');
 
-var User = new.mongoose.Schema({
+var User = new mongoose.Schema({
   local: {
     email: String,
     password: String

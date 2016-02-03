@@ -1,7 +1,4 @@
 var express = require('express');
-var passport = require('passport');
-var session = require('express-session');
-var flash = require('connect-flash');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -9,12 +6,16 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var mongoose = require('mongoose');
+var passport = require('passport');
+var session = require('express-session');
+var flash = require('connect-flash');
 
 var homeRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var todosRouter = require('./routes/todos');
 
 var app = express();
+
 mongoose.connect('mongodb://localhost/todos');
 
 // view engine setup
@@ -29,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'WDI Rocks!' }));
+app.use(session({ secret: 'WDI Rocks!', }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
