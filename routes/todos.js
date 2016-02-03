@@ -2,44 +2,46 @@ var express = require('express');
 var router = express.Router();
 var Todo = require('../models/todo');
 
+var authenticate = function(req, res, next) {
+  if(!req.isAuthenticated()) {
+    res.redirect('/');
+  }
+  else {
+    next();
+  }
+}
+
 // INDEX
-router.get('/', function(req, res, next) {
-  // get all the todos and render the index view
-  Todo.find({})
-  .then(function(todos) {
-    res.render('todos/index', { todos: todos } );
-  }, function(err) {
-    return next(err);
-  });
+router.get('/', authenticate, function(req, res, next) {
+  var todos = global.currentUser.todos;
+  res.render('todos/index', { todos: todos, message: req.flash() });
 });
 
 // NEW
-router.get('/new', function(req, res, next) {
+router.get('/new', authenticate, function(req, res, next) {
   var todo = {
     title: '',
     completed: false
   };
-  res.render('todos/new', { todo: todo } );
+  res.render('todos/new', { todo: todo, message: req.flash() });
 });
 
 // SHOW
-router.get('/:id', function(req, res, next) {
-  Todo.findById(req.params.id)
-  .then(function(todo) {
-    res.render('todos/show', { todo: todo });
-  }, function(err) {
-    return next(err);
-  });
+router.get('/:id', authenticate, function(req, res, next) {
+  var todo = currentUser.todos.id(req.params.id);
+  if (!todo) return next(makeError(res, 'Document not found', 404));
+  res.render('todos/show', { todo: todo, message: req.flash() } );
 });
 
 // CREATE
-router.post('/', function(req, res, next) {
-  var todo = new Todo({
+router.post('/', authenticate, function(req, res, next) {
+  var todo = {
     title: req.body.title,
     completed: req.body.completed ? true : false
-  });
-  todo.save()
-  .then(function(saved) {
+  };
+  currentUser.todos.push(todo);
+  currentUser.save()
+  .then(function() {
     res.redirect('/todos');
   }, function(err) {
     return next(err);
@@ -47,34 +49,37 @@ router.post('/', function(req, res, next) {
 });
 
 // EDIT
-router.get('/:id/edit', function(req, res, next) {
-  Todo.findById(req.params.id)
-  .then(function(todo) {
-    res.render('todos/edit', { todo: todo });
-  }, function(err) {
-    return next(err);
-  });
+router.get('/:id/edit', authenticate, function(req, res, next) {
+  var todo = currentUser.todos.id(req.params.id);
+  if (!todo) return next(makeError(res, 'Document not found', 404));
+  var checked = todo.completed ? 'checked' : '';
+  res.render('todos/edit', { todo: todo, checked: checked, message: req.flash() } );
 });
 
 // UPDATE
-router.put('/:id', function(req, res, next) {
-  Todo.findById(req.params.id)
-  .then(function(todo) {
+router.put('/:id', authenticate, function(req, res, next) {
+  var todo = currentUser.todos.id(req.params.id);
+  if (!todo) return next(makeError(res, 'Document not found', 404));
+  else {
     todo.title = req.body.title;
     todo.completed = req.body.completed ? true : false;
-    return todo.save();
-  })
-  .then(function(saved) {
-    res.redirect('/todos');
-  }, function(err) {
-    return next(err);
-  });
+    currentUser.save()
+    .then(function(saved) {
+      res.redirect('/todos');
+    }, function(err) {
+      return next(err);
+    });
+  }
 });
 
 // DESTROY
-router.delete('/:id', function (req, res, next) {
-  Todo.findByIdAndRemove(req.params.id)
-  .then(function() {
+router.delete('/:id', authenticate, function(req, res, next) {
+  var todo = currentUser.todos.id(req.params.id);
+  if (!todo) return next(makeError(res, 'Document not found', 404));
+  var index = currentUser.todos.indexOf(todo);
+  currentUser.todos.splice(index, 1);
+  currentUser.save()
+  .then(function(saved) {
     res.redirect('/todos');
   }, function(err) {
     return next(err);
